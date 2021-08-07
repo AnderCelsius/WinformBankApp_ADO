@@ -13,6 +13,7 @@ namespace Celsius.Core.Interfaces
         Task<string> CreateSavingsAccount(SavingsAccount model, Customer customer);
         Task<Account> GetAccountDetailsAsync(string accountNumber);
         Task<string> GetAccountBalanceAsync(string accountNumber);
-         Task<List<Account>> GetAccountList(string customerID);
+        Task<string> GetAccountIdAsync(string accountNumber);
+        Task<List<Account>> GetAccountList(string customerID);
     }
 }

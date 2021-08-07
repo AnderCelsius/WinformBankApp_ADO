@@ -9,11 +9,12 @@ namespace Celsius.Core.Interfaces
 {
     public interface ITransactionRepository
     {
-        string MakeDeposit(Transaction model);
-        string SendMoney(Transaction model);
-        string TransferToOtherAccount(Transaction model, string otherAccountNumber);
-        string MakeWithdrawal(Transaction model);
-        string GetStatementOfAccount(string accountId);
+        Task<string> MakeDepositAsync(Transaction model, Account account);
+        Task<string> SendMoneyAsync(Transaction model, Account account);
+        Task<string> TransferToOtherAccountAsync(Transaction model, Account account);
+        Task<string> MakeWithdrawalAsync(Transaction model, Account account);
+        Task<List<Transaction>> GetListOfTransactionsAsync(string accountId);
+        Task<List<Transaction>> GetTop5ListOfTransactionsAsync(string accountId);
         void RecordCreditTransaction(Transaction model, Transaction transaction, Account account);
         void RecordDebitTransaction(Transaction model, Transaction transaction, Account account);
     }

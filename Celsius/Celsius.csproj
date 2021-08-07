@@ -33,6 +33,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FluentValidation, Version=9.0.0.0, Culture=neutral, PublicKeyToken=7de548da2fbae0f0, processorArchitecture=MSIL">
+      <HintPath>..\packages\FluentValidation.10.3.0\lib\netstandard2.0\FluentValidation.dll</HintPath>
+    </Reference>
     <Reference Include="Guna.UI2, Version=2.0.1.9, Culture=neutral, PublicKeyToken=e4b9cdd7b4cde4b4, processorArchitecture=MSIL">
       <HintPath>..\packages\Guna.UI2.WinForms.2.0.1.9\lib\net40\Guna.UI2.dll</HintPath>
     </Reference>
@@ -49,12 +52,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CelsiusBankDataSet.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CelsiusBankDataSet.xsd</DependentUpon>
+    </Compile>
     <Compile Include="DashBoard.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="DashBoard.Designer.cs">
       <DependentUpon>DashBoard.cs</DependentUpon>
     </Compile>
+    <Compile Include="FormValidations\TransactionFormValidator.cs" />
     <Compile Include="SignIn.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -89,6 +98,17 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <None Include="App.config" />
+    <None Include="CelsiusBankDataSet.xsc">
+      <DependentUpon>CelsiusBankDataSet.xsd</DependentUpon>
+    </None>
+    <None Include="CelsiusBankDataSet.xsd">
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>CelsiusBankDataSet.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </None>
+    <None Include="CelsiusBankDataSet.xss">
+      <DependentUpon>CelsiusBankDataSet.xsd</DependentUpon>
+    </None>
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -122,6 +142,12 @@
       <Project>{678957C1-3483-4DA8-8BCF-348658C0A64E}</Project>
       <Name>Celsius.Model</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\refresh.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\refresh1.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

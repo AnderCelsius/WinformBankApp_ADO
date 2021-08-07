@@ -40,5 +40,40 @@ namespace Celsius.Data.Commons
 
             return new IDataParameter[] { pId, pCustomerId, pAccountName, pAccountNumber, pAccountType, pBalance, pMinimumBalance, pDateCreated };
         }
+
+
+        public static IDataParameter[] SetTransactionParameters(Transaction model, Account account)
+        {
+            IDataParameter pId, pAccountId, pAmount, pTransactionType, pSenderAccountName, pReceiverAccountName, pReceiverAccountNumber, pDescription, pBalance, pTransactionDate; // instance of sqlparameter;
+
+            if (model == null)
+            {
+                return null;
+            }
+
+            pId = new SqlParameter("@Id", model.Id);
+
+            pAccountId = new SqlParameter("@CustomerId", account.Id);
+
+            pAmount = new SqlParameter("@AccountName", model.Amount);
+
+
+            pTransactionType = new SqlParameter("@AccountNumber", model.TransactionType);
+
+
+            pSenderAccountName = new SqlParameter("@AccountType", model.SenderAccountName);
+
+            pBalance = new SqlParameter("@Balance", model.Balance);
+
+            pReceiverAccountName = new SqlParameter("@MinimumBalance", model.ReceiverAccountName);
+
+            pReceiverAccountNumber = new SqlParameter("@DateCreated", model.ReceiverAccountNumber);
+
+            pDescription = new SqlParameter("@DateCreated", model.Description);
+
+            pTransactionDate = new SqlParameter("@DateCreated", model.TransactionDate);
+
+            return new IDataParameter[] { pId, pAccountId, pAmount, pTransactionType, pSenderAccountName, pBalance, pReceiverAccountName, pReceiverAccountNumber, pDescription, pTransactionDate };
+        }
     }
 }

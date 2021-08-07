@@ -111,7 +111,6 @@ namespace Celsius
             this.guna2Panel3.ShadowDecoration.Parent = this.guna2Panel3;
             this.guna2Panel3.Size = new System.Drawing.Size(572, 520);
             this.guna2Panel3.TabIndex = 0;
-            this.guna2Panel3.Paint += new System.Windows.Forms.PaintEventHandler(this.guna2Panel3_Paint);
             // 
             // btnGoToSignUp
             // 

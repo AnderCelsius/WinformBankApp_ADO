@@ -82,14 +82,10 @@ namespace Celsius
 
         private void guna2Button1_Click(object sender, EventArgs e)
         {
-            this.Hide();
+            Hide();
             SignUp signUp = new SignUp();
             signUp.Show();
         }
 
-        private void guna2Panel3_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
     }
 }

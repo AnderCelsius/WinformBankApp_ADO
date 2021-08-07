@@ -13,7 +13,7 @@ namespace Celsius.Model
         public string AccountName { get; set; }
         public string AccountType { get; set; }
         public double Balance { get; set; }
-        public int MinimumBalance { get; private set; }
+        public abstract int MinimumBalance { get; protected set; }
         public DateTime DateCreated { get; set; }
         public List<Transaction> TransactionHistory { get; set; }
 

@@ -65,9 +65,8 @@ namespace Celsius.Core.Implementations
         public async Task<string> GetAccountBalanceAsync(string accountNumber)
         {
             string sp = "sp_GetAccountsByAccountNumber";
-            var account =  DataStore.ReadFromDataTbl(sp);
-            var message = string.Empty;
-            message = $"Your Account Balance is N{account}";
+            var account = await DataStore.ReadFromDataTbl(sp);
+            string message = $"Your Account Balance is N{account}";
 
             return message;
         }
@@ -107,21 +106,39 @@ namespace Celsius.Core.Implementations
             }
         }
 
+        /// <summary>
+        /// Get account Id using the account number
+        /// </summary>
+        /// <param name="accountNumber"></param>
+        /// <returns></returns>
+        public async Task<string> GetAccountIdAsync(string accountNumber)
+        {
+            string sp = "sp_GetAccountIdByAccountNumber";
 
+            IDataParameter spParameters = new SqlParameter
+            {
+                ParameterName = "AccountNumber",
+                Value = accountNumber
+            };
+
+            var accountId = await DataStore.ReadFromDataTbl(sp, new IDataParameter[] { spParameters });
+            return accountId.ToString();
+
+        }
 
         /// <summary>
         /// Returns a list of all the customers accounts and their current balance.
         /// </summary>
         /// <param name="customerID"></param>
         /// <returns></returns>
-        public async Task<List<Account>> GetAccountList(string customerid)
+        public async Task<List<Account>> GetAccountList(string customerId)
         {
             string sp = "sp_GetAccountsByCustomerId";
 
             IDataParameter spParameters = new SqlParameter
             {
                 ParameterName = "CustomerId",
-                Value = customerid
+                Value = customerId
             };
 
             List<Account> customerAccounts = new List<Account>();
@@ -135,26 +152,30 @@ namespace Celsius.Core.Implementations
 
                         if (accountType.ToLower() == "savings")
                         {
-                            SavingsAccount account = new SavingsAccount();
-                            account.AccountName = (string)reader["AccountName"];
-                            account.Id = (string)reader["Id"];
-                            account.CustomerId = (string)reader["CustomerId"];
-                            account.AccountNumber = (string)reader["AccountNumber"];
-                            account.AccountType = (string)reader["AccountType"];
-                            account.Balance = (double)reader["Balance"];
-                            account.DateCreated = (DateTime)reader["DateCreated"];
+                            SavingsAccount account = new SavingsAccount
+                            {
+                                AccountName = (string)reader["AccountName"],
+                                Id = (string)reader["Id"],
+                                CustomerId = (string)reader["CustomerId"],
+                                AccountNumber = (string)reader["AccountNumber"],
+                                AccountType = (string)reader["AccountType"],
+                                Balance = (double)reader["Balance"],
+                                DateCreated = (DateTime)reader["DateCreated"]
+                            };
                             customerAccounts.Add(account);
                         }
                         else if(accountType.ToLower() == "current")
                         {
-                            CurrentAccount account = new CurrentAccount();
-                            account.AccountName = (string)reader["AccountName"];
-                            account.Id = (string)reader["Id"];
-                            account.CustomerId = (string)reader["CustomerId"];
-                            account.AccountNumber = (string)reader["AccountNumber"];
-                            account.AccountType = (string)reader["AccountType"];
-                            account.Balance = (double)reader["Balance"];
-                            account.DateCreated = (DateTime)reader["DateCreated"];
+                            CurrentAccount account = new CurrentAccount
+                            {
+                                AccountName = (string)reader["AccountName"],
+                                Id = (string)reader["Id"],
+                                CustomerId = (string)reader["CustomerId"],
+                                AccountNumber = (string)reader["AccountNumber"],
+                                AccountType = (string)reader["AccountType"],
+                                Balance = (double)reader["Balance"],
+                                DateCreated = (DateTime)reader["DateCreated"]
+                            };
                             customerAccounts.Add(account);
                         }
                     }

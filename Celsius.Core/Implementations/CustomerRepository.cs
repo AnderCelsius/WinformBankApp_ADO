@@ -118,7 +118,7 @@ namespace Celsius.Core
         }
 
         /// <summary>
-        /// Searches if customer with the passed in email exists in record.
+        /// Searches if customer with the passed in email exists in record. 
         /// </summary>
         /// <param name="email"></param>
         /// <returns></returns>
@@ -150,6 +150,36 @@ namespace Celsius.Core
                return false;
             }
             
+
+        }
+
+        public async Task<string> GetCustomerIdAsync(string accountNumber)
+        {
+            string sp = "sp_GetCustomerIdByAccountNumber";
+
+            IDataParameter spParameters = new SqlParameter
+            {
+                ParameterName = "AccountNumber",
+                Value = accountNumber
+            };
+
+            using (var reader = await DataStore.ReadFromDataTbl(sp, new IDataParameter[] { spParameters }))
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        string customerId = (string)reader["CustomerId"];
+
+                        if (!string.IsNullOrWhiteSpace(customerId))
+                        {
+                            return customerId;
+                        }
+                    }
+                }
+
+                return null;
+            }
 
         }
     }

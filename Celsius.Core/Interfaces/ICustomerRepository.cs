@@ -13,5 +13,6 @@ namespace Celsius.Core.Interfaces
         Task<bool> SearchCustomer(string email);
         Task<int> AddCustomerInfoToDB(Customer model);
         Task<Customer> GetCustomerDetails(string email);
+        Task<string> GetCustomerIdAsync(string accountNumber);
     }
 }

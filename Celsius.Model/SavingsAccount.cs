@@ -6,7 +6,7 @@ namespace Celsius.Model
 {
     public class SavingsAccount : Account
     {
-        public new int MinimumBalance { get; private set; }
+        public override int MinimumBalance { get; protected set; }
 
         private readonly int minimumBalance = 1000;
         public SavingsAccount()

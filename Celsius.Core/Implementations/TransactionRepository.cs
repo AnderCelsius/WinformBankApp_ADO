@@ -1,9 +1,12 @@
 ﻿using Celsius.Commons;
 using Celsius.Core.Interfaces;
 using Celsius.Data;
+using Celsius.Data.Commons;
 using Celsius.Model;
 using System;
 using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,29 +15,71 @@ namespace Celsius.Core.Implementations
 {
     public class TransactionRepository : ITransactionRepository
     {
-        private static readonly string transactionFilePath = @"Transaction.json";
-        private static readonly string accountFilePath = @"Account.json";
-        public string GetStatementOfAccount(string accountId)
+        public async Task<List<Transaction>> GetListOfTransactionsAsync(string accountId)
         {
-            var message = string.Empty;
-            //List<Transaction> transactionList = DataStore<Transaction>.ReadFromDataTbl(transactionFilePath);
-            //List<Account> accountList = DataStore<Account>.ReadFromDataTbl(accountFilePath);
+            string sp = "sp_GetAllTransactionsByAccountNumber";
 
-            //if (transactionList.Count != 0)
-            //{
-            //    var transactions = accountList.FirstOrDefault(account => account.Id == accountId).TransactionHistory;
+            IDataParameter spParameters = new SqlParameter
+            {
+                ParameterName = "AccountId",
+                Value = accountId
+            };
 
-            //    foreach (var transaction in transactions)
-            //    {
-            //        //$"{transaction.TransactionDate}", $"{transaction.Description}", $"{transaction.Amount}{transaction.TransactionType}", $"N{transaction.Balance}");
-            //    }
-            //}
-            //else
-            //{
-            //    message += $"No transaction made yet";
-            //}
+            List<Transaction> transactions = new List<Transaction>();
 
-            return message;
+            using (var reader = await DataStore.ReadFromDataTbl(sp, new IDataParameter[] { spParameters }))
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        Transaction transaction = new Transaction
+                        {
+                            TransactionDate = (DateTime)reader["TransactionDate"],
+                            TransactionType = (string)reader["TransactionType"],
+                            Amount = (double)reader["Amount"],
+                            Description = (string)reader["Description"]
+                        };
+                        transactions.Add(transaction);
+                    }
+                }
+
+                return transactions;
+            }
+        }
+
+
+        public async Task<List<Transaction>> GetTop5ListOfTransactionsAsync(string accountId)
+        {
+            string sp = "sp_GetTop5TransactionsByAccountNumber";
+
+            IDataParameter spParameters = new SqlParameter
+            {
+                ParameterName = "AccountId",
+                Value = accountId
+            };
+
+            List<Transaction> transactions = new List<Transaction>();
+
+            using (var reader = await DataStore.ReadFromDataTbl(sp, new IDataParameter[] { spParameters }))
+            {
+                if (reader != null)
+                {
+                    while (reader.Read())
+                    {
+                        Transaction transaction = new Transaction
+                        {
+                            TransactionDate = (DateTime)reader["TransactionDate"],
+                            TransactionType = (string)reader["TransactionType"],
+                            Amount = (double)reader["Amount"],
+                            Description = (string)reader["Description"]
+                        };
+                        transactions.Add(transaction);
+                    }
+                }
+
+                return transactions;
+            }
         }
 
         public void RecordCreditTransaction(Transaction model, Transaction transaction, Account account)
@@ -42,7 +87,7 @@ namespace Celsius.Core.Implementations
             transaction.AccountId = account.Id;
             transaction.Amount = model.Amount;
             transaction.Description = model.Description;
-            transaction.Sender = account.AccountName;
+            transaction.SenderAccountName = account.AccountName;
             transaction.TransactionType = Utils.TransactionType.Cr.ToString();
             account.Balance += model.Amount;
             transaction.Balance = account.Balance;
@@ -53,7 +98,7 @@ namespace Celsius.Core.Implementations
         {
             transaction.AccountId = model.AccountId;
             transaction.Amount = model.Amount;
-            transaction.Sender = account.AccountName;
+            transaction.SenderAccountName = account.AccountName;
             transaction.ReceiverAccountNumber = model.ReceiverAccountNumber;
             transaction.Description = model.Description;
             transaction.TransactionType = Utils.TransactionType.Dr.ToString();
@@ -62,168 +107,141 @@ namespace Celsius.Core.Implementations
             account.TransactionHistory.Add(transaction);
         }
 
-        public string MakeDeposit(Transaction model)
+        public async Task<string> MakeDepositAsync(Transaction model, Account account)
         {
-            var message = string.Empty;
-            //List<Transaction> transactionList = DataStore<Transaction>.ReadFromDataTbl(transactionFilePath);
-            //List<Account> accountList = DataStore<Account>.ReadFromDataTbl(accountFilePath);
-            //var previousTransactionCount = transactionList.Count;
-            //var transaction = new Transaction();
+            string message = "";
 
-            //foreach (var account in accountList)
-            //{
-            //    if(model != null)
-            //    {
-            //        if (account.Id == model.AccountId && model.Amount > 0)
-            //        {
-            //            RecordCreditTransaction(model, transaction, account);
-            //        }
-            //    }
-            //}
-            //transactionList.Add(transaction);
+            string sp = "sp_DepositByAccountId";
 
-            //int updatedTransactionCount = transactionList.Count;
+            //(@Id, @AccountId, @Amount, @SenderAccountName, @SenderAccountNumber, @TransactionType, @Description, @Balance, @TransactionDate)
 
-            //if (updatedTransactionCount > previousTransactionCount)
-            //    message += "Transaction Succesful";
+            IDataParameter pId, pAccountId, pAmount, pBalance, pSenderAccountNumber, pSenderAccountName, pTransactionType, pDescription, pTransactionDate; // instance of sqlparamet
 
-            //else
-            //{
-            //    message += "Transaction Failed";
-            //}
+            pId = new SqlParameter("@Id", model.Id);
+
+            pAccountId = new SqlParameter("@AccountId", account.Id);
+
+            //pAccountNumber = new SqlParameter("@AccountNumber", account.AccountNumber);
+
+            //pAccountName = new SqlParameter("@AccountName", account.AccountName);
+
+            pSenderAccountNumber = new SqlParameter("@SenderAccountNumber", model.SenderAccountNumber);
+
+            pSenderAccountName = new SqlParameter("@SenderAccountName", model.SenderAccountName);
+
+            pAmount = new SqlParameter("@Amount", model.Amount);
+
+            pBalance = new SqlParameter("@Balance", model.Balance);
+
+            pTransactionType = new SqlParameter("@TransactionType", model.TransactionType);
+
+            pDescription = new SqlParameter("@Description", model.Description);
+
+            pTransactionDate = new SqlParameter("@TransactionDate", model.TransactionDate);
+
+            int result = await DataStore.WriteToDataTbl(sp, new IDataParameter[] { pId, pAccountId, pAmount, pBalance, pSenderAccountNumber, pSenderAccountName, pTransactionType, pDescription, pTransactionDate });
+
+            message += result == 1 ? "Transaction Successful" : "Transaction Failed";
 
             return message;
         }
 
-        public string MakeWithdrawal(Transaction model)
+        public async Task<string> MakeWithdrawalAsync(Transaction model, Account account)
         {
-            var message = string.Empty;
-            //List<Transaction> transactionList = DataStore<Transaction>.ReadFromDataTbl(transactionFilePath);
-            //List<Account> accountList = DataStore<Account>.ReadFromDataTbl(accountFilePath);
-            //int previousTransactionCount = transactionList.Count;
-            //var transaction = new Transaction();
+            string message = "";
 
-            //foreach (var account in accountList)
-            //{
-            //    if(model != null)
-            //    {
-            //        if (account.Id == model.AccountId)
-            //        {
-            //            if (account.Balance >= model.Amount + account.MinimumBalance)
-            //            {
-            //                RecordDebitTransaction(model, transaction, account);
-            //            }
-            //            else
-            //            {
-            //                return "Insufficient Funds.";
-            //            }
-            //        }
-            //    }
-            //}
-            //transactionList.Add(transaction);
-            //int updatedTransactionCount = transactionList.Count;
+            string sp = "sp_WithdrawByAccountNumber";
 
-            //if (updatedTransactionCount > previousTransactionCount)
-            //{
-            //    message += "Transaction Succesful";
-            //}
-            //else
-            //{
-            //    message += "Transaction Failed";
-            //}
+            IDataParameter pId, pAccountNumber, pAccountId, pAmount, pBalance, pTransactionType, pDescription, pTransactionDate; // instance of sqlparamet
+
+            pId = new SqlParameter("@Id", model.Id);
+
+            pAccountId = new SqlParameter("@AccountId", account.Id);
+
+            pAccountNumber = new SqlParameter("@AccountNumber", account.AccountNumber);
+
+            pAmount = new SqlParameter("@Amount", model.Amount);
+
+            pBalance = new SqlParameter("@Balance", model.Balance);
+
+            pTransactionType = new SqlParameter("@TransactionType", model.TransactionType);
+
+            pDescription = new SqlParameter("@Description", model.Description);
+
+            pTransactionDate = new SqlParameter("@TransactionDate", model.TransactionDate);
+
+            int result = await DataStore.WriteToDataTbl(sp, new IDataParameter[] { pId, pAccountId, pAccountNumber, pAmount, pBalance, pTransactionType, pDescription, pTransactionDate });
+
+            message += result == 1 ? "Transaction Successful" : "Transaction Failed";
 
             return message;
         }
 
-        public string SendMoney(Transaction model)
+        public async Task<string> SendMoneyAsync(Transaction model, Account account)
         {
-            var message = string.Empty;
-            //List<Transaction> transactionList = DataStore<Transaction>.ReadFromDataTbl(transactionFilePath);
-            //List<Account> accountList = DataStore<Account>.ReadFromDataTbl(accountFilePath);
+            string message = "";
 
-            //int previousTransactionCount = transactionList.Count;
-            //var transaction = new Transaction();
+            string sp = "sp_SendToOtherByAccountNumber";
 
-            //foreach (var account in accountList)
-            //{
-            //    if (account.Id == model.AccountId)
-            //    {
-            //        if (account.Balance >= model.Amount - account.MinimumBalance)
-            //        {
-            //            RecordDebitTransaction(model, transaction, account);
-            //        }
-            //        else
-            //        {
-            //            return "Insufficient Funds.";
-            //        }
-            //    }
-            //}
+            IDataParameter pId, pAccountNumber, pAccountId, pAmount, pReceiverAccNum, /*pReceiverAccName,*/ pTransactionType, pDescription, pBalance, pTransactionDate; // instance of sqlparamet
 
-            //transactionList.Add(transaction);
-            //int updatedTransactionCount = transactionList.Count;
+            pId = new SqlParameter("@Id", model.Id);
 
-            //if (updatedTransactionCount > previousTransactionCount)
-            //{
-            //    message += "Transaction Succesful";
-            //}
-            //else
-            //{
-            //    message += "Transaction Failed";
-            //}
+            pAccountId = new SqlParameter("@AccountId", account.Id);
+
+            pAccountNumber = new SqlParameter("@AccountNumber", account.AccountNumber);
+
+            pReceiverAccNum = new SqlParameter("@ReceiverAccountNumber", model.ReceiverAccountNumber);
+
+            //pReceiverAccName = new SqlParameter("@ReceiverAccountName", model.ReceiverAccountName);
+
+            pAmount = new SqlParameter("@Amount", model.Amount);
+
+            pTransactionType = new SqlParameter("@TransactionType", model.TransactionType);
+
+            pDescription = new SqlParameter("@Description", model.Description);
+
+            pBalance = new SqlParameter("@Balance", account.Balance);
+
+            pTransactionDate = new SqlParameter("@TransactionDate", model.TransactionDate);
+
+            int result = await DataStore.WriteToDataTbl(sp, new IDataParameter[] { pId, pAccountId, pAccountNumber, pReceiverAccNum, /*pReceiverAccName,*/ pAmount, pTransactionType, pDescription, pBalance, pTransactionDate });
+
+            message += result == 1 ? "Transaction Successful" : "Transaction Failed";
+
             return message;
         }
 
-        public string TransferToOtherAccount(Transaction model, string otherAccountNumber)
+        public async Task<string> TransferToOtherAccountAsync(Transaction model, Account account)
         {
-            var message = string.Empty;
-            //List<Transaction> transactionList = DataStore<Transaction>.ReadFromDataTbl(transactionFilePath);
-            //List<Account> accountList = DataStore<Account>.ReadFromDataTbl(accountFilePath);
-            //Account foundAccount = (Account)DataStore<Account>.ReadFromDataTbl(accountFilePath).Where(x => x.Number == otherAccountNumber);
+            string message = "";
 
-            //int previousTransactionCount = transactionList.Count;
-            //var transaction = new Transaction();
-            //var receiverTransaction = new Transaction();
+            string sp = "sp_SendToOtherByAccountNumber";
 
-            ////Debit sending account
-            //foreach (var account in accountList)
-            //{
-            //    if (account.Id == model.AccountId)
-            //    {
-            //        if (account.Balance >= model.Amount - account.MinimumBalance)
-            //        {
-            //            RecordDebitTransaction(model, transaction, account);
-            //        }
-            //        else
-            //        {
-            //            return "Insufficient Funds.";
-            //        }
-            //    }
-            //}
+            IDataParameter pId, pAccountNumber, pAccountId, pAmount, pReceiverAccNum, pTransactionType, pDescription, pBalance, pTransactionDate; // instance of sqlparamet
 
-            ////Credit recieving account
-            //foreach (var account in accountList)
-            //{
-            //    if (account.Number == otherAccountNumber)
-            //    {
-            //        receiverTransaction.AccountId = foundAccount.Number;
-            //        RecordCreditTransaction(model, receiverTransaction, account);
-            //    }
-            //}
+            pId = new SqlParameter("@Id", model.Id);
 
-            ////Add record to transferring account
-            //transactionList.Add(transaction);
-            ////Add record to receiving account
-            //transactionList.Add(receiverTransaction);
+            pAccountId = new SqlParameter("@AccountId", account.Id);
 
-            //int updatedTransactionCount = transactionList.Count;
+            pAccountNumber = new SqlParameter("@AccountNumber", account.AccountNumber);
 
-            //if (updatedTransactionCount > previousTransactionCount)
-            //    message += "Transaction Succesful";
+            pReceiverAccNum = new SqlParameter("@ReceiverAccountNumber", model.ReceiverAccountNumber);
 
-            //else
-            //{
-            //    message += "Transaction Failed";
-            //}
+            pAmount = new SqlParameter("@Amount", model.Amount);
+
+            pTransactionType = new SqlParameter("@TransactionType", model.TransactionType);
+
+            pDescription = new SqlParameter("@Description", model.Description);
+
+            pBalance = new SqlParameter("@Balance", account.Balance);
+
+            pTransactionDate = new SqlParameter("@TransactionDate", model.TransactionDate);
+
+            int result = await DataStore.WriteToDataTbl(sp, new IDataParameter[] { pId, pAccountId, pAccountNumber, pReceiverAccNum, pAmount, pTransactionType, pDescription, pBalance, pTransactionDate });
+
+            message += result == 1 ? "Transaction Successful" : "Transaction Failed";
+
             return message;
         }
     }

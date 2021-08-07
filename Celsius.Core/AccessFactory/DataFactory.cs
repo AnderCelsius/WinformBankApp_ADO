@@ -24,5 +24,10 @@ namespace Celsius.Core.AccessFactory
         {
             return new AccountRepository();
         }
+
+        public static ITransactionRepository GetTransactionRepository()
+        {
+            return new TransactionRepository();
+        }
     }
 }
